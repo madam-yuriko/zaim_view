@@ -1,6 +1,7 @@
 import const
 import re
 import time
+from const import MAX_ROW_CNT
 
 
 def extract_category(df):
@@ -20,7 +21,7 @@ def insert_tree(tree, df, is_group):
         tree.delete(i)
     # 再描画
     df = df.reindex(columns=show_cols)
-    df = df.iloc[0:200]
+    df = df.iloc[0:MAX_ROW_CNT]
     for i, row in enumerate(df.itertuples()):
         row = list(row)
         if not is_group:

@@ -102,7 +102,7 @@ class MouseApp(tk.Frame):
         self.cmb_category_detail = ttk.Combobox(self, width=20, height=50, textvariable=sv, values=[])
 
         # 方法の初期値
-        self.cmb_method.current(1)
+        self.cmb_method.current(0)
 
         # お店
         sv = tk.StringVar()
@@ -152,6 +152,12 @@ class MouseApp(tk.Frame):
         self.tree = None
         self.make_tree()
 
+        # スクロールバー
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.tree.yview)
+        scroll.pack(side=tk.RIGHT, fill="y")
+        self.tree.pack()
+        self.tree["yscrollcommand"] = scroll.set
+
         # ウィジェット配置
         self.widget()
 
@@ -167,7 +173,7 @@ class MouseApp(tk.Frame):
     def make_tree(self):
         data_frame_layout = const.DATA_FLAME_LAYOUT_2 if self.bv4.get() else const.DATA_FLAME_LAYOUT_1
         self.tree = ttk.Treeview(self)
-        self.tree['height'] = 50
+        self.tree['height'] = const.VIEW_ROW_CNT
         self.tree["column"] = list(data_frame_layout.keys())
         self.tree["show"] = "headings"
         [self.tree.heading(k, text=k) for k in data_frame_layout.keys()]

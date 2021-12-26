@@ -1,6 +1,7 @@
 import tkinter as tk
 
-ROW_COUNT = 50
+VIEW_ROW_CNT = 50
+MAX_ROW_CNT = 1000
 
 USE_COLS = ['日付', '方法', 'カテゴリ', 'カテゴリの内訳', '支払元', '品目', 'メモ', 'お店', '通貨変換前の金額', '集計の設定']
 
@@ -23,7 +24,7 @@ TOTALING_LIST = [
 
 # 方法一覧
 METHOD_LIST = {
-    '全て': '', '支出': 'payment', '収入': 'income', '残高': 'balance', '送金': 'transfer'
+    '全て': '', '支出': 'payment', '収入': 'income', '残高': 'balance', '振替': 'transfer'
 }
 
 # 支出カテゴリ
