@@ -261,44 +261,7 @@ class MouseApp(tk.Frame):
         score_sort = self.bv2.get()
         all_show = self.bv3.get()
         visit_group = self.bv4.get()
-        if year != '':
-            df = df[df['日付'].str.contains(year)]
-        if totaling != '':
-            df = df[df['集計の設定'].str.contains(totaling)]
-        if method not in ['全て']:
-            df = df[df['方法'] == const.METHOD_LIST[method]]
-        if category != '':
-            df = df[df['カテゴリ'].str.contains(category)]
-        if category_detail != '':
-            category_detail = category_detail.replace('(', '\(').replace(')', '\)')
-            df = df[df['カテゴリの内訳'].str.contains(category_detail)]
-        if shop != '':
-            df = df[df['お店'].str.lower().str.contains(shop.lower())]
-        if genre != '':
-            df = df[df['ジャンル'].str.contains(genre)]
-        if item != '':
-            df = df[df['品目'].str.lower().str.contains(item.lower())]
-        if memo != '':
-            df = df[df['メモ'].str.lower().str.contains(memo.lower())]
-        if price_sort:
-            df = df.sort_values(['通貨変換前の金額'], ascending=False)
-        if score_sort:
-            df = df[df['点数'] > 0].sort_values(['点数', '件数'], ascending=False)
-        if not all_show:
-            df = df[~df['カテゴリの内訳'].isin(['投資', 'ホテル代'])]
-        if visit_group:
-            df = df[~df['カテゴリの内訳'].str.contains('割り勘')]
-            df1 = df.groupby('お店').count()['日付']
-            df2 = df.groupby('お店').sum()['通貨変換前の金額']
-            df3 = pd.concat([df1, df2], axis=1)
-            df3.columns = ['訪問回数', '合計金額']
-            df3['平均金額'] = (df3['合計金額'] / df3['訪問回数']).astype('int')
-            df3 = df3.sort_values(['訪問回数', '合計金額'], ascending=False)
-            df4 = df.sort_values('日付')
-            df4 = df4[~df4.duplicated('お店', keep='last')][['お店', '日付']]
-            df5 = pd.merge(df3, df4, on='お店')
-            df5.columns = ['お店', '訪問回数', '合計金額', '平均金額', '最終訪問日']
-            df = df5.reindex(columns=const.SHOW_COLS_2)
+        df = func.processing_data_frame(df, year, totaling, method, category, category_detail, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
         if visit_group:
             self.lbl_title['text'] = f'Zaim {"{:,}".format(len(df))}件 hit 総訪問回数 {"{:,}".format(df["訪問回数"].sum())}回 総額 ￥{"{:,}".format(df["合計金額"].sum())}'
         else:

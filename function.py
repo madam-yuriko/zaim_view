@@ -1,7 +1,50 @@
 import const
+import pandas as pd
 import re
 import time
 from const import MAX_ROW_CNT
+
+
+def processing_data_frame(df, year='', totaling='', method='', category='', category_detail='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
+    if year:
+            df = df[df['日付'].str.contains(year)]
+    if totaling:
+        df = df[df['集計の設定'].str.contains(totaling)]
+    if method not in ['全て']:
+        df = df[df['方法'] == const.METHOD_LIST[method]]
+    if category:
+        df = df[df['カテゴリ'].str.contains(category)]
+    if category_detail:
+        category_detail = category_detail.replace('(', '\(').replace(')', '\)')
+        df = df[df['カテゴリの内訳'].str.contains(category_detail)]
+    if shop:
+        df = df[df['お店'].str.lower().str.replace(' ', '').str.contains(shop.lower().replace(' ', ''))]
+    if genre:
+        df = df[df['ジャンル'].str.contains(genre)]
+    if item:
+        df = df[df['品目'].str.lower().str.contains(item.lower())]
+    if memo:
+        df = df[df['メモ'].str.lower().str.contains(memo.lower())]
+    if price_sort:
+        df = df.sort_values(['通貨変換前の金額'], ascending=False)
+    if score_sort:
+        df = df[df['点数'] > 0].sort_values(['点数', '件数'], ascending=False)
+    if not all_show:
+        df = df[~df['カテゴリの内訳'].isin(['投資', 'ホテル代'])]
+    if visit_group:
+        df = df[~df['カテゴリの内訳'].str.contains('割り勘')]
+        df1 = df.groupby('お店').count()['日付']
+        df2 = df.groupby('お店').sum()['通貨変換前の金額']
+        df3 = pd.concat([df1, df2], axis=1)
+        df3.columns = ['訪問回数', '合計金額']
+        df3['平均金額'] = (df3['合計金額'] / df3['訪問回数']).astype('int')
+        df3 = df3.sort_values(['訪問回数', '合計金額'], ascending=False)
+        df4 = df.sort_values('日付')
+        df4 = df4[~df4.duplicated('お店', keep='last')][['お店', '日付']]
+        df5 = pd.merge(df3, df4, on='お店')
+        df5.columns = ['お店', '訪問回数', '合計金額', '平均金額', '最終訪問日']
+        df = df5.reindex(columns=const.SHOW_COLS_2)
+    return df
 
 
 def extract_category(df):
