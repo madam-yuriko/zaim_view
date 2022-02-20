@@ -1,6 +1,5 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from PIL import Image, ImageTk
 import pandas as pd
 import webbrowser
 import const
@@ -183,13 +182,16 @@ class MouseApp(tk.Frame):
 
     def on_tree_double_click(self, event):
         select = self.tree.selection()[0]
-        print(select)
-        shop = self.tree.set(select)['お店']
-        shop = re.sub(r'\[.*\]', '', shop)
-        shop = re.sub(r'【.*】', '', shop)
-        shop = shop.replace('(', '').replace(')', '')
-        print(shop)
-        webbrowser.open(f'https://www.google.com/search?q=食べログ+{shop}')
+        category = self.tree.set(select)['カテゴリ']
+        if category == '食費':
+            shop = self.tree.set(select)['お店']
+            shop = re.sub(r'\[.*\]', '', shop)
+            shop = re.sub(r'【.*】', '', shop)
+            shop = shop.replace('(', '').replace(')', '')
+            webbrowser.open(f'https://www.google.com/search?q=食べログ+{shop}')
+        else:
+            item = self.tree.set(select)['品目']
+            webbrowser.open(f'https://www.google.com/search?q={item}')
 
 
     def on_check_changed(self, df, type=''):

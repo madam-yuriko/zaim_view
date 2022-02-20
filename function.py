@@ -1,7 +1,6 @@
 import const
 import pandas as pd
-import re
-import time
+import requests
 from const import MAX_ROW_CNT
 
 
@@ -88,3 +87,17 @@ def insert_tree(tree, df, is_group):
             tree.tag_configure(i, background="#ffffff")
         elif i % 2 == 1:
             tree.tag_configure(i, background="#d5ffef")
+
+
+# def load_csv(url):
+#     # driver = webdriver.Chrome(driver_path)
+#     # driver.get(URL)
+#     # driver.find_element_by_class_name('new_addToCart').click()
+#     # driver.quit()
+# from selenium import webdriver
+# from time import sleep
+# driver = webdriver.Chrome('C:/Users/world/git/zaim_view/chromedriver')
+# driver.get('https://content.zaim.net/home/money')
+# # WebDriverWait(driver, WAIT_SECOND).until(EC.presence_of_element_located((By.CLASS_NAME, 'Btn')))
+# # driver.find_element_by_class_name('form-horizontal download-money').click()
+# # driver.quit()
