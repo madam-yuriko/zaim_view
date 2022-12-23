@@ -65,6 +65,11 @@ class MouseApp(tk.Frame):
         df['件数'] = df.apply(func_number, axis=1)
         df = df.sort_values(['日付'], ascending=False)
 
+        # 支出一覧
+        self.payment_list = list(set(df[df['方法'] == 'payment']['カテゴリ'].tolist()))
+        # 収入一覧
+        self.income_list = list(set(df[df['方法'] == 'income']['カテゴリ'].tolist()))
+
         # カテゴリの辞書を生成
         category_dict = func.extract_category(df)
 
@@ -75,6 +80,14 @@ class MouseApp(tk.Frame):
         year_list = [''] + [i[0:4] for i in df.日付.tolist()]
         year_list = sorted(set(year_list), key=year_list.index)
         self.cmb_year = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=year_list)
+
+        # 月
+        sv = tk.StringVar()
+        sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '月'))
+        self.lbl_month = tk.Label(self, text='月')
+        month_list = [''] + [i[5:7] for i in df.日付.tolist()]
+        month_list = sorted(set(month_list), key=month_list.index)
+        self.cmb_month = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=month_list)
 
         # 集計
         sv = tk.StringVar()
@@ -181,6 +194,7 @@ class MouseApp(tk.Frame):
 
 
     def on_tree_double_click(self, event):
+        print('on_tree_double_click')
         select = self.tree.selection()[0]
         category = self.tree.set(select)['カテゴリ']
         if category == '食費':
@@ -195,7 +209,7 @@ class MouseApp(tk.Frame):
 
 
     def on_check_changed(self, df, type=''):
-        print(type)
+        print('on_check_changed', type)
         if type == '金額ソート':
             if self.bv1.get():
                 self.bv2.set(False)
@@ -215,14 +229,16 @@ class MouseApp(tk.Frame):
 
 
     def on_text_changed(self, df, col='', category_dict=''):
-        print(col)
+        print('on_text_changed', col)
         if col == '方法':
             self.reset()
             val = self.cmb_method.get()
-            if val == '支出':
-                self.cmb_category['values'] = const.PAYMENT_CATEGORY_LIST
+            if val == '全て':
+                self.cmb_category['values'] = self.payment_list + self.income_list
+            elif val == '支出':
+                self.cmb_category['values'] = self.payment_list
             elif val == '収入':
-                self.cmb_category['values'] = const.INCOME_CATEGORY_LIST
+                self.cmb_category['values'] = self.income_list
         elif col == 'カテゴリ':
             self.cmb_category_detail.set('')
             val = self.cmb_category.get()
@@ -251,6 +267,7 @@ class MouseApp(tk.Frame):
             return
         print('reload')
         year = self.cmb_year.get()
+        month = self.cmb_month.get()
         totaling = self.cmb_totaling.get()
         method = self.cmb_method.get()
         category = self.cmb_category.get()
@@ -263,7 +280,7 @@ class MouseApp(tk.Frame):
         score_sort = self.bv2.get()
         all_show = self.bv3.get()
         visit_group = self.bv4.get()
-        df = func.processing_data_frame(df, year, totaling, method, category, category_detail, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
+        df = func.processing_data_frame(df, year, month, totaling, method, category, category_detail, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
         if visit_group:
             self.lbl_title['text'] = f'Zaim {"{:,}".format(len(df))}件 hit 総訪問回数 {"{:,}".format(df["訪問回数"].sum())}回 総額 ￥{"{:,}".format(df["合計金額"].sum())}'
         else:
@@ -278,7 +295,9 @@ class MouseApp(tk.Frame):
         self.tree.pack(side=tk.BOTTOM, fill=tk.BOTH)
         self.lbl_year.pack(side=tk.LEFT, anchor=tk.W, padx=5, pady=5)
         self.cmb_year.pack(side=tk.LEFT, after=self.lbl_year, anchor=tk.W, padx=5, pady=5)
-        self.lbl_totaling.pack(side=tk.LEFT,after=self.cmb_year,  anchor=tk.W, padx=5, pady=5)
+        self.lbl_month.pack(side=tk.LEFT,after=self.cmb_year,  anchor=tk.W, padx=5, pady=5)
+        self.cmb_month.pack(side=tk.LEFT, after=self.lbl_month, anchor=tk.W, padx=5, pady=5)
+        self.lbl_totaling.pack(side=tk.LEFT,after=self.cmb_month,  anchor=tk.W, padx=5, pady=5)
         self.cmb_totaling.pack(side=tk.LEFT, after=self.lbl_totaling, anchor=tk.W, padx=5, pady=5)
         self.lbl_method.pack(side=tk.LEFT, after=self.cmb_totaling, anchor=tk.W, padx=5, pady=5)
         self.cmb_method.pack(side=tk.LEFT, after=self.lbl_method, anchor=tk.W, padx=5, pady=5)
@@ -304,6 +323,8 @@ class MouseApp(tk.Frame):
         self.tree.pack_forget()
         self.lbl_year.pack_forget()
         self.cmb_year.pack_forget()
+        self.lbl_month.pack_forget()
+        self.cmb_month.pack_forget()
         self.lbl_method.pack_forget()
         self.cmb_method.pack_forget()
         self.lbl_category.pack_forget()

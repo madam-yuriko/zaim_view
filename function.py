@@ -4,9 +4,11 @@ import requests
 from const import MAX_ROW_CNT
 
 
-def processing_data_frame(df, year='', totaling='', method='', category='', category_detail='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
+def processing_data_frame(df, year='', month='', totaling='', method='', category='', category_detail='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
     if year:
             df = df[df['日付'].str.contains(year)]
+    if month:
+            df = df[df['日付'].str.contains(f'-{month}-')]
     if totaling:
         df = df[df['集計の設定'].str.contains(totaling)]
     if method not in ['全て']:
