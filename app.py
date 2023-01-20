@@ -85,9 +85,7 @@ class MouseApp(tk.Frame):
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '月'))
         self.lbl_month = tk.Label(self, text='月')
-        month_list = [''] + [i[5:7] for i in df.日付.tolist()]
-        month_list = sorted(set(month_list), key=month_list.index)
-        self.cmb_month = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=month_list)
+        self.cmb_month = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=[''])
 
         # 集計
         sv = tk.StringVar()
@@ -112,6 +110,12 @@ class MouseApp(tk.Frame):
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, 'カテゴリの内訳'))
         self.lbl_category_detail = tk.Label(self, text='カテゴリの内訳')
         self.cmb_category_detail = ttk.Combobox(self, width=20, height=50, textvariable=sv, values=[])
+
+        # 支払元
+        sv = tk.StringVar()
+        sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '支払元'))
+        self.lbl_payment = tk.Label(self, text='支払元')
+        self.cmb_payment = ttk.Combobox(self, width=20, height=50, textvariable=sv, values=const.PAYMENT_LIST)
 
         # 方法の初期値
         self.cmb_method.current(0)
@@ -196,16 +200,17 @@ class MouseApp(tk.Frame):
     def on_tree_double_click(self, event):
         print('on_tree_double_click')
         select = self.tree.selection()[0]
-        category = self.tree.set(select)['カテゴリ']
-        if category == '食費':
-            shop = self.tree.set(select)['お店']
-            shop = re.sub(r'\[.*\]', '', shop)
-            shop = re.sub(r'【.*】', '', shop)
-            shop = shop.replace('(', '').replace(')', '')
-            webbrowser.open(f'https://www.google.com/search?q=食べログ+{shop}')
+        shop = re.sub(r'【.*】', '', re.sub(r'\[.*\]', '', self.tree.set(select)['お店'])).replace('(', '').replace(')', '')
+        if not self.bv4.get():
+            category = self.tree.set(select)['カテゴリ']
+            if category == '食費':
+                webbrowser.open(f'https://www.google.com/search?q={shop}')
+            else:
+                item = self.tree.set(select)['品目']
+                webbrowser.open(f'https://www.google.com/search?q={item}')
         else:
-            item = self.tree.set(select)['品目']
-            webbrowser.open(f'https://www.google.com/search?q={item}')
+            # 訪問回数グループ化
+            webbrowser.open(f'https://www.google.com/search?q={shop}')
 
 
     def on_check_changed(self, df, type=''):
@@ -230,19 +235,26 @@ class MouseApp(tk.Frame):
 
     def on_text_changed(self, df, col='', category_dict=''):
         print('on_text_changed', col)
+        if col == '年':
+            val = self.cmb_year.get()
+            if val:
+                self.cmb_month['values'] = [''] + [str(i).zfill(2) for i in list(range(1, 13))]
+            else:
+                self.cmb_month.set('')
+                self.cmb_month['values'] = ['']
         if col == '方法':
             self.reset()
             val = self.cmb_method.get()
             if val == '全て':
-                self.cmb_category['values'] = self.payment_list + self.income_list
+                self.cmb_category['values'] = [''] + self.payment_list + self.income_list
             elif val == '支出':
-                self.cmb_category['values'] = self.payment_list
+                self.cmb_category['values'] = const.PAYMENT_CATEGORY_LIST
             elif val == '収入':
-                self.cmb_category['values'] = self.income_list
+                self.cmb_category['values'] = [''] + self.income_list
         elif col == 'カテゴリ':
             self.cmb_category_detail.set('')
             val = self.cmb_category.get()
-            self.cmb_category_detail['values'] = category_dict[val]
+            self.cmb_category_detail['values'] = [''] + category_dict[val]
         self.reload(df)
 
 
@@ -272,6 +284,7 @@ class MouseApp(tk.Frame):
         method = self.cmb_method.get()
         category = self.cmb_category.get()
         category_detail = self.cmb_category_detail.get()
+        payment = self.cmb_payment.get()
         shop = self.txt_shop.get()
         genre = self.txt_genre.get()
         item = self.txt_item.get()
@@ -280,7 +293,7 @@ class MouseApp(tk.Frame):
         score_sort = self.bv2.get()
         all_show = self.bv3.get()
         visit_group = self.bv4.get()
-        df = func.processing_data_frame(df, year, month, totaling, method, category, category_detail, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
+        df = func.processing_data_frame(df, year, month, totaling, method, category, category_detail, payment, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
         if visit_group:
             self.lbl_title['text'] = f'Zaim {"{:,}".format(len(df))}件 hit 総訪問回数 {"{:,}".format(df["訪問回数"].sum())}回 総額 ￥{"{:,}".format(df["合計金額"].sum())}'
         else:
@@ -305,7 +318,9 @@ class MouseApp(tk.Frame):
         self.cmb_category.pack(side=tk.LEFT, after=self.lbl_category, anchor=tk.W, padx=5, pady=5)
         self.lbl_category_detail.pack(side=tk.LEFT, after=self.cmb_category, anchor=tk.W, padx=5, pady=5)
         self.cmb_category_detail.pack(side=tk.LEFT, after=self.lbl_category_detail, anchor=tk.W, padx=5, pady=5)
-        self.lbl_shop.pack(side=tk.LEFT, after=self.cmb_category_detail, anchor=tk.W, padx=5, pady=5)
+        self.lbl_payment.pack(side=tk.LEFT, after=self.cmb_category_detail, anchor=tk.W, padx=5, pady=5)
+        self.cmb_payment.pack(side=tk.LEFT, after=self.lbl_payment, anchor=tk.W, padx=5, pady=5)
+        self.lbl_shop.pack(side=tk.LEFT, after=self.cmb_payment, anchor=tk.W, padx=5, pady=5)
         self.txt_shop.pack(side=tk.LEFT, after=self.lbl_shop, anchor=tk.W, padx=5, pady=5)
         self.lbl_genre.pack(side=tk.LEFT, after=self.txt_shop, anchor=tk.W, padx=5, pady=5)
         self.txt_genre.pack(side=tk.LEFT, after=self.lbl_genre, anchor=tk.W, padx=5, pady=5)

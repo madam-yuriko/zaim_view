@@ -2,13 +2,29 @@ import const
 import pandas as pd
 import requests
 from const import MAX_ROW_CNT
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 
-def processing_data_frame(df, year='', month='', totaling='', method='', category='', category_detail='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
-    if year:
-            df = df[df['日付'].str.contains(year)]
+def processing_data_frame(df, year='', month='', totaling='', method='', category='', category_detail='', payment='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
+    if year and not month:
+        df = df[df['日付'].str.contains(year)]
     if month:
-            df = df[df['日付'].str.contains(f'-{month}-')]
+        # 給料日計算
+        date_from = datetime.strptime(f'{year}{month}25', '%Y%m%d')
+        date_from -= relativedelta(months=1)
+        date_to = datetime.strptime(f'{year}{month}25', '%Y%m%d')
+        while date_from.weekday() in (5, 6):
+            date_from -= timedelta(days=1)
+        while date_to.weekday() in (5, 6):
+            date_to -= timedelta(days=1)
+        date_to -= timedelta(days=1)
+
+        month_list = []
+        while date_from < date_to:
+            month_list.append(date_from.strftime('%Y-%m-%d'))
+            date_from += timedelta(days=1)
+        df = df[df['日付'].isin(month_list)]
     if totaling:
         df = df[df['集計の設定'].str.contains(totaling)]
     if method not in ['全て']:
@@ -18,6 +34,8 @@ def processing_data_frame(df, year='', month='', totaling='', method='', categor
     if category_detail:
         category_detail = category_detail.replace('(', '\(').replace(')', '\)')
         df = df[df['カテゴリの内訳'].str.contains(category_detail)]
+    if payment:
+        df = df[df['支払元'].str.contains(payment)]
     if shop:
         df = df[df['お店'].str.lower().str.replace(' ', '').str.contains(shop.lower().replace(' ', ''))]
     if genre:
@@ -33,6 +51,7 @@ def processing_data_frame(df, year='', month='', totaling='', method='', categor
     if not all_show:
         df = df[~df['カテゴリの内訳'].isin(['投資', 'ホテル代'])]
     if visit_group:
+        df['お店'] = df['お店'].str.replace('\[.*\]', '', regex=True)
         df = df[~df['カテゴリの内訳'].str.contains('割り勘')]
         df1 = df.groupby('お店').count()['日付']
         df2 = df.groupby('お店').sum()['通貨変換前の金額']
