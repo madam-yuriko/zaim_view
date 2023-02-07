@@ -185,7 +185,6 @@ class MouseApp(tk.Frame):
         self.init = False
         self.reload(df)
 
-
     def make_tree(self):
         data_frame_layout = const.DATA_FLAME_LAYOUT_2 if self.bv4.get() else const.DATA_FLAME_LAYOUT_1
         self.tree = ttk.Treeview(self)
@@ -195,7 +194,6 @@ class MouseApp(tk.Frame):
         [self.tree.heading(k, text=k) for k in data_frame_layout.keys()]
         [self.tree.column(k, width=v[0], anchor=v[1]) for k, v in data_frame_layout.items()]
         self.tree.bind("<Double-1>", lambda event: self.on_tree_double_click(event))
-
 
     def on_tree_double_click(self, event):
         print('on_tree_double_click')
@@ -211,7 +209,6 @@ class MouseApp(tk.Frame):
         else:
             # 訪問回数グループ化
             webbrowser.open(f'https://www.google.com/search?q={shop}')
-
 
     def on_check_changed(self, df, type=''):
         print('on_check_changed', type)
@@ -231,7 +228,6 @@ class MouseApp(tk.Frame):
         self.make_tree()
         self.widget()
         self.on_text_changed(df)
-
 
     def on_text_changed(self, df, col='', category_dict=''):
         print('on_text_changed', col)
@@ -257,7 +253,6 @@ class MouseApp(tk.Frame):
             self.cmb_category_detail['values'] = [''] + category_dict[val]
         self.reload(df)
 
-
     def reset(self):
         try:
             self.cmb_category.set('')
@@ -269,10 +264,8 @@ class MouseApp(tk.Frame):
         except:
             pass
 
-
     def on_enter(self, df):
         self.reload(df)
-
 
     def reload(self, df):
         if self.init:
@@ -300,7 +293,6 @@ class MouseApp(tk.Frame):
             self.lbl_title['text'] = f'Zaim {"{:,}".format(len(df))}件 hit 総額 ￥{"{:,}".format(df["通貨変換前の金額"].sum())}'
 
         func.insert_tree(self.tree, df, visit_group)
-
 
     def widget(self):
         # ウィジェット配置
@@ -333,7 +325,6 @@ class MouseApp(tk.Frame):
         self.chk_all_show.pack(side=tk.LEFT, after=self.chk_score_sort, anchor=tk.W, padx=5, pady=5)
         self.chk_visit_group.pack(side=tk.LEFT, after=self.chk_all_show, anchor=tk.W, padx=5, pady=5)
 
-    
     def widget_forget(self):
         self.tree.pack_forget()
         self.lbl_year.pack_forget()
@@ -357,7 +348,7 @@ class MouseApp(tk.Frame):
         self.chk_price_sort.pack_forget()
         self.chk_score_sort.pack_forget()
         self.chk_visit_group.pack_forget()
-                 
+
 # アプリの実行
 f = MouseApp()
 f.pack()
