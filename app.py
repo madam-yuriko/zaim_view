@@ -79,25 +79,25 @@ class MouseApp(tk.Frame):
         self.lbl_year = tk.Label(self, text='年')
         year_list = [''] + [i[0:4] for i in df.日付.tolist()]
         year_list = sorted(set(year_list), key=year_list.index)
-        self.cmb_year = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=year_list)
+        self.cmb_year = ttk.Combobox(self, width=8, height=50, textvariable=sv, values=year_list)
 
         # 月
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '月'))
         self.lbl_month = tk.Label(self, text='月')
-        self.cmb_month = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=[''])
+        self.cmb_month = ttk.Combobox(self, width=4, height=50, textvariable=sv, values=[''])
 
         # 集計
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '集計'))
         self.lbl_totaling = tk.Label(self, text='集計')
-        self.cmb_totaling = ttk.Combobox(self, width=20, height=50, textvariable=sv, values=list(const.TOTALING_LIST))
+        self.cmb_totaling = ttk.Combobox(self, width=16, height=50, textvariable=sv, values=list(const.TOTALING_LIST))
 
         # 方法
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df, '方法'))
         self.lbl_method = tk.Label(self, text='方法')
-        self.cmb_method = ttk.Combobox(self, width=20, height=50, textvariable=sv, values=list(const.METHOD_LIST.keys()))
+        self.cmb_method = ttk.Combobox(self, width=10, height=50, textvariable=sv, values=list(const.METHOD_LIST.keys()))
 
         # カテゴリ
         sv = tk.StringVar()
@@ -120,11 +120,23 @@ class MouseApp(tk.Frame):
         # 方法の初期値
         self.cmb_method.current(0)
 
+        # 金額 下限
+        sv = tk.StringVar()
+        sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df))
+        self.lbl_money_lower = tk.Label(self, text='金額(下限)')
+        self.txt_money_lower = tk.Entry(self, width=10, textvariable=sv)
+
+        # 金額 上限
+        sv = tk.StringVar()
+        sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df))
+        self.lbl_money_upper = tk.Label(self, text='金額(上限)')
+        self.txt_money_upper = tk.Entry(self, width=10, textvariable=sv)
+
         # お店
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df))
         self.lbl_shop = tk.Label(self, text='お店')
-        self.txt_shop = tk.Entry(self, width=30, textvariable=sv)
+        self.txt_shop = tk.Entry(self, width=25, textvariable=sv)
 
         # ジャンル
         sv = tk.StringVar()
@@ -142,7 +154,7 @@ class MouseApp(tk.Frame):
         sv = tk.StringVar()
         sv.trace("w", lambda name, index, mode, sv=sv, df=df: self.on_text_changed(df))
         self.lbl_memo = tk.Label(self, text='メモ')
-        self.txt_memo = tk.Entry(self, width=20, textvariable=sv)
+        self.txt_memo = tk.Entry(self, width=25, textvariable=sv)
 
         # 金額ソート
         self.bv1 = tk.BooleanVar()
@@ -278,6 +290,8 @@ class MouseApp(tk.Frame):
         category = self.cmb_category.get()
         category_detail = self.cmb_category_detail.get()
         payment = self.cmb_payment.get()
+        money_lower = self.txt_money_lower.get()
+        money_upper = self.txt_money_upper.get()
         shop = self.txt_shop.get()
         genre = self.txt_genre.get()
         item = self.txt_item.get()
@@ -286,7 +300,7 @@ class MouseApp(tk.Frame):
         score_sort = self.bv2.get()
         all_show = self.bv3.get()
         visit_group = self.bv4.get()
-        df = func.processing_data_frame(df, year, month, totaling, method, category, category_detail, payment, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
+        df = func.processing_data_frame(df, year, month, totaling, method, category, category_detail, payment, money_lower, money_upper, shop, genre, item, memo, price_sort, score_sort, all_show, visit_group)
         if visit_group:
             self.lbl_title['text'] = f'Zaim {"{:,}".format(len(df))}件 hit 総訪問回数 {"{:,}".format(df["訪問回数"].sum())}回 総額 ￥{"{:,}".format(df["合計金額"].sum())}'
         else:
@@ -312,7 +326,11 @@ class MouseApp(tk.Frame):
         self.cmb_category_detail.pack(side=tk.LEFT, after=self.lbl_category_detail, anchor=tk.W, padx=5, pady=5)
         self.lbl_payment.pack(side=tk.LEFT, after=self.cmb_category_detail, anchor=tk.W, padx=5, pady=5)
         self.cmb_payment.pack(side=tk.LEFT, after=self.lbl_payment, anchor=tk.W, padx=5, pady=5)
-        self.lbl_shop.pack(side=tk.LEFT, after=self.cmb_payment, anchor=tk.W, padx=5, pady=5)
+        self.lbl_money_lower.pack(side=tk.LEFT, after=self.cmb_payment, anchor=tk.W, padx=5, pady=5)
+        self.txt_money_lower.pack(side=tk.LEFT, after=self.lbl_money_lower, anchor=tk.W, padx=5, pady=5)
+        self.lbl_money_upper.pack(side=tk.LEFT, after=self.txt_money_lower, anchor=tk.W, padx=5, pady=5)
+        self.txt_money_upper.pack(side=tk.LEFT, after=self.lbl_money_upper, anchor=tk.W, padx=5, pady=5)
+        self.lbl_shop.pack(side=tk.LEFT, after=self.txt_money_upper, anchor=tk.W, padx=5, pady=5)
         self.txt_shop.pack(side=tk.LEFT, after=self.lbl_shop, anchor=tk.W, padx=5, pady=5)
         self.lbl_genre.pack(side=tk.LEFT, after=self.txt_shop, anchor=tk.W, padx=5, pady=5)
         self.txt_genre.pack(side=tk.LEFT, after=self.lbl_genre, anchor=tk.W, padx=5, pady=5)

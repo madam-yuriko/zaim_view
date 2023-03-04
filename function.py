@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 
-def processing_data_frame(df, year='', month='', totaling='', method='', category='', category_detail='', payment='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
+def processing_data_frame(df, year='', month='', totaling='', method='', category='', category_detail='', payment='', money_lower='', money_upper ='', shop='', genre='', item='', memo='', price_sort=False, score_sort=False, all_show=False, visit_group=False):
     if year and not month:
         df = df[df['日付'].str.contains(year)]
     if month:
@@ -36,6 +36,10 @@ def processing_data_frame(df, year='', month='', totaling='', method='', categor
         df = df[df['カテゴリの内訳'].str.contains(category_detail)]
     if payment:
         df = df[df['支払元'].str.contains(payment)]
+    if money_lower:
+        df = df[int(money_lower) <= df['通貨変換前の金額']]
+    if money_upper:
+        df = df[df['通貨変換前の金額'] <= int(money_upper)]
     if shop:
         df = df[df['お店'].str.lower().str.replace(' ', '').str.contains(shop.lower().replace(' ', ''))]
     if genre:
