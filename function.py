@@ -55,7 +55,7 @@ def processing_data_frame(df, year='', month='', totaling='', method='', categor
     if not all_show:
         df = df[~df['カテゴリの内訳'].isin(['投資', 'ホテル代'])]
     if visit_group:
-        df['お店'] = df['お店'].str.replace('\[.*\]', '', regex=True)
+        df['お店'] = df['お店'].str.replace('\[.*\] ', '', regex=True)
         df = df[~df['カテゴリの内訳'].str.contains('割り勘')]
         df1 = df.groupby('お店').count()['日付']
         df2 = df.groupby('お店').sum()['通貨変換前の金額']
