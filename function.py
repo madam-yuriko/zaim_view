@@ -19,9 +19,10 @@ def processing_data_frame(df, year='', month='', totaling='', method='', categor
         while date_to.weekday() in (5, 6):
             date_to -= timedelta(days=1)
         date_to -= timedelta(days=1)
+        print('date range', f'{date_from.strftime("%Y-%m-%d")}～{date_to.strftime("%Y-%m-%d")}')
 
         month_list = []
-        while date_from < date_to:
+        while date_from <= date_to:
             month_list.append(date_from.strftime('%Y-%m-%d'))
             date_from += timedelta(days=1)
         df = df[df['日付'].isin(month_list)]

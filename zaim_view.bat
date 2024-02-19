@@ -1,3 +1,3 @@
-cd C:\Users\yoshi\git\zaim_view
+cd C:\Users\yoshinori\git\zaim_view
 python ./app.py
 pause
