@@ -55,9 +55,11 @@ class MouseApp(tk.Frame):
                         background='#00aa00')
 
         # データフレーム取得
-        files = glob.glob("./*.csv")
-        target = max([int(re.findall('.*\.(.*)\.', i)[0]) for i in files])
-        df = pd.read_csv(f'Zaim.{target}.csv', encoding='utf-8', usecols=const.USE_COLS, low_memory=False).fillna('')
+        files = glob.glob('C:/Users/yoshinori/Downloads/*.csv')
+        pattern = re.compile(r'^.*Zaim\.\d+\.csv')
+        matching_files = [file for file in files if pattern.match(file)]
+        target = max([int(re.findall('.*\.(.*)\.', i)[0]) for i in matching_files])
+        df = pd.read_csv(f'C:/Users/yoshinori/Downloads/Zaim.{target}.csv', encoding='utf-8', usecols=const.USE_COLS, low_memory=False).fillna('')
         # 必要なカラムを生成
         df['ジャンル'] = df.apply(func_genre, axis=1)
         df['場所'] = df.apply(func_place, axis=1)
@@ -72,6 +74,10 @@ class MouseApp(tk.Frame):
 
         # カテゴリの辞書を生成
         category_dict = func.extract_category(df)
+        
+        ############## コンポーネント ##############
+        # 最新CSV取得ボタン
+        self.get_latest_button = tk.Button(self, text="CSV取得", command=self.get_latest_button_clicked)
 
         # 年
         sv = tk.StringVar()
@@ -175,6 +181,7 @@ class MouseApp(tk.Frame):
         self.bv4 = tk.BooleanVar()
         self.bv4.trace("w", lambda name, index, mode, bv=self.bv4, df=df: self.on_check_changed(df, '訪問回数グループ化'))
         self.chk_visit_group = tk.Checkbutton(self, variable=self.bv4, text='訪問回数グループ化')
+        
 
         # ツリーレイアウト 
         self.tree = None
@@ -264,6 +271,9 @@ class MouseApp(tk.Frame):
             val = self.cmb_category.get()
             self.cmb_category_detail['values'] = [''] + category_dict[val]
         self.reload(df)
+        
+    def get_latest_button_clicked(self):
+        webbrowser.open(f'https://content.zaim.net/home/money')
 
     def reset(self):
         try:
@@ -312,7 +322,8 @@ class MouseApp(tk.Frame):
         # ウィジェット配置
         self.lbl_title.pack(side=tk.TOP, fill=tk.BOTH)
         self.tree.pack(side=tk.BOTTOM, fill=tk.BOTH)
-        self.lbl_year.pack(side=tk.LEFT, anchor=tk.W, padx=5, pady=5)
+        self.get_latest_button.pack(side=tk.LEFT, anchor=tk.W, padx=5, pady=5)
+        self.lbl_year.pack(side=tk.LEFT, after=self.get_latest_button, anchor=tk.W, padx=5, pady=5)
         self.cmb_year.pack(side=tk.LEFT, after=self.lbl_year, anchor=tk.W, padx=5, pady=5)
         self.lbl_month.pack(side=tk.LEFT,after=self.cmb_year,  anchor=tk.W, padx=5, pady=5)
         self.cmb_month.pack(side=tk.LEFT, after=self.lbl_month, anchor=tk.W, padx=5, pady=5)
