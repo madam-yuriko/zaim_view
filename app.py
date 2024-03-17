@@ -14,6 +14,8 @@ class MouseApp(tk.Frame):
     # 初期化
     def __init__(self, master=None):
         self.init = True
+        # オプションを設定
+        pd.set_option('display.max_columns', None)
 
         # ★バグ対応用の関数を追加
         def fixed_map(option):
@@ -60,6 +62,13 @@ class MouseApp(tk.Frame):
         matching_files = [file for file in files if pattern.match(file)]
         target = max([int(re.findall('.*\.(.*)\.', i)[0]) for i in matching_files])
         df = pd.read_csv(f'C:/Users/yoshinori/Downloads/Zaim.{target}.csv', encoding='utf-8', usecols=const.USE_COLS, low_memory=False).fillna('')
+        
+        # 金額計算
+        df.loc[df['方法'] == 'income', '通貨変換前の金額'] = df.loc[df['方法'] == 'income', '収入']
+        df.loc[df['方法'] == 'payment', '通貨変換前の金額'] = df.loc[df['方法'] == 'payment', '支出']
+        df.loc[df['方法'] == 'transfer', '通貨変換前の金額'] = df.loc[df['方法'] == 'transfer', '振替']
+        df.loc[df['方法'] == 'balance', '通貨変換前の金額'] = df.loc[df['方法'] == 'balance', '残高調整']
+        
         # 必要なカラムを生成
         df['ジャンル'] = df.apply(func_genre, axis=1)
         df['場所'] = df.apply(func_place, axis=1)
@@ -356,6 +365,7 @@ class MouseApp(tk.Frame):
 
     def widget_forget(self):
         self.tree.pack_forget()
+        self.get_latest_button.pack_forget()
         self.lbl_year.pack_forget()
         self.cmb_year.pack_forget()
         self.lbl_month.pack_forget()
